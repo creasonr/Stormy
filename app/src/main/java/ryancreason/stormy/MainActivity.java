@@ -2,13 +2,12 @@ package ryancreason.stormy;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
+import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -30,7 +29,7 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends ActionBarActivity implements LocationProvider.LocationCallback {
     public static final String TAG = MainActivity.class.getSimpleName();
 
     private CurrentWeather mCurrentWeather;
@@ -43,33 +42,54 @@ public class MainActivity extends ActionBarActivity {
     @InjectView(R.id.iconImageView) ImageView mIconImageView;
     @InjectView(R.id.refreshImageView) ImageView mRefreshImageView;
     @InjectView(R.id.progressBar) ProgressBar mProgressBar;
+    @InjectView(R.id.locationLabel) TextView mLocationLabel;
+    private double currentLatitude;
+    private double currentLongitude;
+    private LocationProvider mLocationProvider;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.inject(this);
+        mLocationProvider = new LocationProvider(this, this);
 
         mProgressBar.setVisibility(View.INVISIBLE);
-
-        final double latitude = 37.8267;
-        final double longitude = -122.423;
 
         mRefreshImageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                getForecast(latitude, longitude);
+                mLocationProvider.refresh();
             }
         });
-
-        getForecast(latitude, longitude);
 
         Log.d(TAG, "Main UI code is running!");
     }
 
-    private void getForecast(double latitude, double longitude) {
+    @Override
+    public void handleNewLocation(Location location) {
+        Log.d(TAG, location.toString());
+
+        currentLatitude = location.getLatitude();
+        currentLongitude = location.getLongitude();
+        getForecast(currentLatitude, currentLongitude);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mLocationProvider.connect();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mLocationProvider.disconnect();
+    }
+
+    private void getForecast(double currentLatitude, double currentLongitude) {
         String apiKey = "628ed4f3186e87e6306aec675ceca740";
-        String forecastUrl = "https://api.forecast.io/forecast/" + apiKey + "/" + latitude + "," + longitude;
+        String forecastUrl = "https://api.forecast.io/forecast/" + apiKey + "/" + currentLatitude + "," + currentLongitude;
 
         if (isNetworkAvailable()) {
             toggleRefresh();
@@ -136,6 +156,7 @@ public class MainActivity extends ActionBarActivity {
     }
 
     private void updateDisplay() {
+        mLocationLabel.setText(mCurrentWeather.getTimeZone());
         mTemperatureLabel.setText(mCurrentWeather.getTemperature() + "");
         mTimeLabel.setText("At " + mCurrentWeather.getFormattedTime() + " it will be");
         mHumidityValue.setText(mCurrentWeather.getHumidity() + "");
