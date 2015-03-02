@@ -1,10 +1,12 @@
-package ryancreason.stormy;
+package ryancreason.stormy.ui;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.Context;
 import android.os.Bundle;
+
+import ryancreason.stormy.R;
 
 /**
  * Created by Creason_C on 2/16/15.

@@ -1,13 +1,15 @@
-package ryancreason.stormy;
+package ryancreason.stormy.weather;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
+import ryancreason.stormy.R;
+
 /**
  * Created by Creason_C on 2/17/15.
  */
-public class CurrentWeather {
+public class Current {
     private String mIcon;
     private long mTime;
     private double mTemperature;
